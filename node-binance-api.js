@@ -1949,7 +1949,7 @@ let api = function Binance() {
 
                     symbols.forEach(symbolDepthInit);
                     let streams = symbols.map(function (symbol) {
-                        return symbol.toLowerCase() + '@depth' + '@depth@100ms';
+                        return symbol.toLowerCase() + '@depth@100ms';
                     });
                     subscription = subscribeCombined(streams, handleDepthStreamData, reconnect, function () {
                         async.mapLimit(symbols, 50, getSymbolDepthSnapshot, (err, results) => {
@@ -1961,7 +1961,7 @@ let api = function Binance() {
                 } else {
                     let symbol = symbols;
                     symbolDepthInit(symbol);
-                    subscription = subscribe(symbol.toLowerCase() + '@depth' + '@depth@100ms', handleDepthStreamData, reconnect, function () {
+                    subscription = subscribe(symbol.toLowerCase() + '@depth@100ms', handleDepthStreamData, reconnect, function () {
                         async.mapLimit([symbol], 1, getSymbolDepthSnapshot, (err, results) => {
                             if (err) throw err;
                             results.forEach(updateSymbolDepthCache);
