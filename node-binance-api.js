@@ -766,7 +766,7 @@ let api = function Binance() {
      * @param {object} depth - information
      * @return {undefined}
      */
-    const depthHandler = function (depth) {
+    const depthHandler = function (depth, updateCallback) {
         let symbol = depth.s, obj;
         let context = Binance.depthCacheContext[symbol];
 
@@ -789,6 +789,7 @@ let api = function Binance() {
             context.skipCount = 0;
             context.lastEventUpdateId = depth.u;
             context.lastEventUpdateTime = depth.E;
+            if (updateCallback) updateCallback(symbol, depth)
         };
 
         // This now conforms 100% to the Binance docs constraints on managing a local order book
@@ -1866,7 +1867,7 @@ let api = function Binance() {
             * @param {int} limit - the number of entries
             * @return {string} the websocket endpoint
             */
-            depthCache: function depthCacheFunction(symbols, callback, limit = 500) {
+            depthCache: function depthCacheFunction(symbols, callback, snapshotCallback, updateCallback, limit = 500) {
                 let reconnect = function () {
                     if (Binance.options.reconnect) depthCacheFunction(symbols, callback, limit);
                 };
@@ -1896,7 +1897,7 @@ let api = function Binance() {
                         context.messageQueue.push(depth);
                     } else {
                         try {
-                            depthHandler(depth);
+                            depthHandler(depth, updateCallback);
                         } catch (err) {
                             return terminate(context.endpointId, true);
                         }
@@ -1931,13 +1932,14 @@ let api = function Binance() {
                         /* Although sync errors shouldn't ever happen here, we catch and swallow them anyway
                            just in case. The stream handler function above will deal with broken caches. */
                         try {
-                            depthHandler(depth);
+                            depthHandler(depth, updateCallback);
                         } catch (err) {
                             // do nothing
                         }
                     }
                     delete context.messageQueue;
                     if (callback) callback(symbol, Binance.depthCache[symbol]);
+                    if (snapshotCallback) snapshotCallback(symbol, json)
                 };
 
                 /* If an array of symbols are sent we use a combined stream connection rather.
